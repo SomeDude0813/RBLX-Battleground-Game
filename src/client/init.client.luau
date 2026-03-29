@@ -1,14 +1,15 @@
-local Auxillary = require(game:GetService("ReplicatedStorage").Modules.Auxillary.Auxillary)
+local Auxillary = require(game.ReplicatedStorage.Shared.Auxillary.Auxillary)
 local services = Auxillary.Services
 
-local plr : Player = services.p.LocalPlayer
+local plr: Player = services.p.LocalPlayer
 
-local c : Model = plr.Character or plr.CharacterAdded:Wait()
-local h : Humanoid = c:WaitForChild("Humanoid")
+local c: Model = plr.Character or plr.CharacterAdded:Wait()
+local h: Humanoid = c:WaitForChild("Humanoid")
 
 h:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
 
 local VFX = require(services.rp.Modules.Auxillary.VFX)
+
 local CooldownManager = require(services.rp.Modules.Managers.CooldownManager)
 local MovementManager = require(services.rp.Modules.Managers.MovementManager)
 
@@ -41,9 +42,8 @@ ClientData.MovementManager = MovementManager.new(plr, ClientData.CooldownManager
 
 --ClientData.PlayerData = GetData:InvokeServerAsync()
 
-
 --//Skillset
-local CurrentSkillsetName = nil 
+local CurrentSkillsetName = nil
 local CurrentSkillset = {}
 ClientData.Skillset = CurrentSkillsetName
 
@@ -52,8 +52,7 @@ function SetUpSkillset(Name)
 		Name = "Demo" -- Default Skillset
 	end
 	CurrentSkillsetName = Name
-	
-	
+
 	for i, Module in pairs(services.rp.Modules.Skillsets[Name]:GetChildren()) do
 		local Skill = require(Module)
 		if Module.Name == "Skillset" then
@@ -74,14 +73,13 @@ function SetDownSkillSet()
 	CurrentSkillset = {}
 end
 
-
 ClientData.Function.SetUpSkillset = SetUpSkillset()
 
 --//Input
 function handleInputs(input, gpe)
 	local convertedInput = ""
 	local state = input.UserInputState == Enum.UserInputState.End and "End" or "Begin"
-	
+
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
 		convertedInput = "M1"
 	elseif input.KeyCode.Value >= 48 and input.KeyCode.Value <= 57 then
@@ -89,16 +87,22 @@ function handleInputs(input, gpe)
 	else
 		convertedInput = input.KeyCode.Name
 	end
-	
-	if plr.Character.Humanoid.Health <= 0 then return end
-	if (state == "End" or ClientData.CooldownManager:CanAction()) and ClientData.MovementManager.States.Stun == false and plr.Character.StatusFolder:FindFirstChild("Stun") == nil then
+
+	if plr.Character.Humanoid.Health <= 0 then
+		return
+	end
+	if
+		(state == "End" or ClientData.CooldownManager:CanAction())
+		and ClientData.MovementManager.States.Stun == false
+		and plr.Character.StatusFolder:FindFirstChild("Stun") == nil
+	then
 		if CurrentSkillset[convertedInput] then
 			CurrentSkillset[convertedInput][state](CurrentSkillset(convertedInput))
 		elseif CurrentSkillset.Skillset.Skills[convertedInput] then
 			local skill = CurrentSkillset.Skillset.Skills[convertedInput].Name
-			CurrentSkillset.Skillset[skill..state](CurrentSkillset.Skillset)
+			CurrentSkillset.Skillset[skill .. state](CurrentSkillset.Skillset)
 		elseif convertedInput == "LeftShift" then
-			ClientData.MovementManager["Sprint"..state](ClientData.MovementManager)
+			ClientData.MovementManager["Sprint" .. state](ClientData.MovementManager)
 		elseif convertedInput == "H" then
 			plr.PlayerGui.Main.Enabled = not plr.PlayerGui.Main.Enabled
 		end
@@ -107,4 +111,3 @@ end
 
 services.uis.InputBegan:Connect(handleInputs)
 services.uis.InputEnded:Connect(handleInputs)
-
