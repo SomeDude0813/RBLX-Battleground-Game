@@ -10,8 +10,8 @@ h:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
 
 local VFX = require(services.rp.Modules.Auxillary.VFX)
 
-local CooldownManager = require(services.rp.Modules.Managers.CooldownManager)
-local MovementManager = require(services.rp.Modules.Managers.MovementManager)
+local CooldownManager = require(services.rp.Shared.Managers.CooldownManager)
+local MovementManager = require(services.rp.Shared.Managers.MovementManager)
 
 --[[
 --//Camera Shaking Stuff--

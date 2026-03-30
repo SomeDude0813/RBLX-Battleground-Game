@@ -6,12 +6,12 @@ local services = Auxillary.Services
 
 local Assets = services.rp.Assets.UI
 
-function CooldownManager.new(user : Player)
+function CooldownManager.new(user: Player)
 	local self = setmetatable({}, CooldownManager)
 	self.User = user
 	self.Cooldowns = {}
 	self.InAction = false
-	
+
 	return self
 end
 
@@ -30,13 +30,13 @@ function CooldownManager:ClearSkillset()
 	--]]
 end
 
-function CooldownManager:AddSkill(Skill : string, Length : number, Key : string, LayoutOrder : number)
+function CooldownManager:AddSkill(Skill: string, Length: number, Key: string, LayoutOrder: number)
 	self.Cooldowns[Skill] = {
 		OnCooldown = false,
 		Length = Length,
 		Key = Key,
 	}
-	
+
 	if LayoutOrder then
 		--[[
 		local Tile = Assets.SkillTile:Clone()
@@ -59,12 +59,13 @@ function CooldownManager:Cooldown(Skill)
 		end
 		local Start = time()
 		SkillCooldown.OnCooldown = true
-		
+
 		SkillCooldown.Timer = services.RS.RenderStepped:Connect(function(dt)
 			local TimeElapsed = math.min((time() - Start), SkillCooldown.Length)
 			if SkillCooldown.Tile then
-				SkillCooldown.Tile.CooldownColder.UIGradient.Offset = Vector2.new(0, 1.5 * TimeElapsed/SkillCooldown.Length - .5)
-				SkillCooldown.Tile.Cooldown.Text = math.ceil((SkillCooldown.Length - TimeElapsed) * 10)/10
+				SkillCooldown.Tile.CooldownColder.UIGradient.Offset =
+					Vector2.new(0, 1.5 * TimeElapsed / SkillCooldown.Length - 0.5)
+				SkillCooldown.Tile.Cooldown.Text = math.ceil((SkillCooldown.Length - TimeElapsed) * 10) / 10
 			end
 			if TimeElapsed == SkillCooldown.Length then
 				SkillCooldown.Timer:Disconnect()
@@ -78,7 +79,7 @@ function CooldownManager:Cooldown(Skill)
 	end
 end
 
-function CooldownManager:OnCooldown(Skill : string)
+function CooldownManager:OnCooldown(Skill: string)
 	if self.Cooldowns[Skill] then
 		return self.Cooldowns[Skill].OnCooldown
 	end
@@ -95,8 +96,8 @@ function CooldownManager:FreeAction()
 end
 
 function CooldownManager:CanAction()
+	print(not self.InAction)
 	return not self.InAction
 end
-
 
 return CooldownManager

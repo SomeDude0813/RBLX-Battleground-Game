@@ -5,25 +5,24 @@ local Auxillary = require(game:GetService("ReplicatedStorage").Modules.Auxillary
 local services = Auxillary.Services
 
 local Statuses = {
-	["Stun"] = {WalkSpeed = 0, JumpHeight = 0},
-	["LockWalk"] = {WalkSpeed = 0, JumpHeight = 1},
-	["LockJump"] = {WalkSpeed = 1, JumpHeight = 0},
-	["Speed"] = {WalkSpeed = 1.2, JumpHeight = 1},
-	["Slow"] = {WalkSpeed = 0.5, JumpHeight = 1},
+	["Stun"] = { WalkSpeed = 0, JumpHeight = 0 },
+	["LockWalk"] = { WalkSpeed = 0, JumpHeight = 1 },
+	["LockJump"] = { WalkSpeed = 1, JumpHeight = 0 },
+	["Speed"] = { WalkSpeed = 1.2, JumpHeight = 1 },
+	["Slow"] = { WalkSpeed = 0.5, JumpHeight = 1 },
 }
 
-function Movement.new(user: Player, cooldownManager : {})
+function Movement.new(user: Player, cooldownManager: {})
 	local self = setmetatable({}, Movement)
 	self.User = user
 	self.States = {
 		["Sprinting"] = false,
-		["Stun"] = false
+		["Stun"] = false,
 	}
 	self.CooldownManager = cooldownManager
-	
+
 	return self
 end
-
 
 function Movement:LockMovement()
 	self.A = Instance.new("NumberValue")
@@ -45,15 +44,15 @@ end
 
 function Movement:UpdateCharacter(character)
 	local statusFolder = character:WaitForChild("StatusFolder")
-	
+
 	local function updateMovement(statusFolder)
 		local walkSpeed = Auxillary.BaseProperties.Humanoid.WalkSpeed
 		local jumpHeight = Auxillary.BaseProperties.Humanoid.JumpHeight
-		
+
 		if self.States.Sprinting and self.States.Stun == false and self.CooldownManager:CanAction() then
 			walkSpeed *= 1.5
 		end
-		
+
 		for i, Status in pairs(Statuses) do
 			if statusFolder:FindFirstChild(i) then
 				walkSpeed *= Status.WalkSpeed
@@ -63,17 +62,15 @@ function Movement:UpdateCharacter(character)
 				self.States[i] = false
 			end
 		end
-		
+
 		character.Humanoid.WalkSpeed = walkSpeed
 		character.Humanoid.JumpHeight = jumpHeight
-		
 	end
-	
+
 	local con
 	con = services.rs.Heartbeat:Connect(function(dt)
 		updateMovement(statusFolder)
 	end)
-	
 end
 
 function Movement:SprintBegin()
@@ -83,7 +80,5 @@ end
 function Movement:SprintEnd()
 	self.States.Sprinting = false
 end
-
-
 
 return table.freeze(Movement)

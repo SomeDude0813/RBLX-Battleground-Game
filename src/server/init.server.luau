@@ -27,4 +27,22 @@ services.p.PlayerAdded:Connect(function(player: Player)
 
 	local gold = Instance.new("IntValue")
 	gold.Name = "Kills"
+
+	do
+		local a = Instance.new("NumberValue")
+		a.Name = "LastCombat"
+		a.Value = 0
+		a.Parent = player
+	end
+	do
+		local a = Instance.new("StringValue")
+		a.Name = "Skillset"
+		a.Value = "Demo"
+		a.Parent = player
+	end
+
+	local Character = Instance.new("StringValue")
+	Character.Name = "Character"
+	Character.Value = "Demo"
+	Character.Parent = player
 end)
