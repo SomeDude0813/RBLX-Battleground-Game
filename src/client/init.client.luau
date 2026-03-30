@@ -13,6 +13,7 @@ local VFX = require(services.rp.Modules.Auxillary.VFX)
 local CooldownManager = require(services.rp.Modules.Managers.CooldownManager)
 local MovementManager = require(services.rp.Modules.Managers.MovementManager)
 
+
 --[[
 --//Camera Shaking Stuff--
 local camera = workspace.CurrentCamera
