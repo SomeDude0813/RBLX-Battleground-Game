@@ -15,8 +15,7 @@ module.Services = {
 	["uis"] = game:GetService("UserInputService"),
 	["rs"] = game:GetService("RunService"),
 	["SS"] = game:GetService("SoundService"),
-	["cs"] = game:GetService("CollectionService"),
-	["cas"] = game:GetService("ContextActionService"),
+	["cs"] = game:GetService("CollectionService")
 }
 
 module.BaseProperties = {
@@ -28,36 +27,13 @@ module.BaseProperties = {
 		JumpHeight = 7.2,
 	},
 	["ColorCorrection"] = {
-		Saturation = 0.45,
+		Saturation = .45
 	},
 	["Clouds"] = {
-		Cover = 0.7,
-		Density = 0.2,
-		Color = Color3.fromRGB(255, 255, 255),
-	},
-}
-
-module.Inputs = {
-	["M1"] = Enum.UserInputType.MouseButton1,
-	["MoveForward"] = Enum.KeyCode.W,
-	["MoveBackward"] = Enum.KeyCode.S,
-	["MoveLeft"] = Enum.KeyCode.A,
-	["MoveRight"] = Enum.KeyCode.D,
-	["Dash"] = Enum.KeyCode.Q,
-	["Jump"] = Enum.KeyCode.Space,
-	["Sprint"] = Enum.KeyCode.LeftShift,
-	["Skill1"] = Enum.KeyCode.One,
-	["Skill2"] = Enum.KeyCode.Two,
-	["Skill3"] = Enum.KeyCode.Three,
-	["Skill4"] = Enum.KeyCode.Four,
-	["Skill5"] = Enum.KeyCode.Five,
-}
-
-module.Cooldowns = {
-	["Combo"] = 0.5,
-	["ComboReset"] = 1.5,
-	["Dash"] = 2,
-	["HeldDash"] = 5,
+		Cover = .7,
+		Density = .2,
+		Color = Color3.fromRGB(255,255,255)
+	}
 }
 
 return module

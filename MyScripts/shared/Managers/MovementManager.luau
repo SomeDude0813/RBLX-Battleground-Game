@@ -2,12 +2,7 @@ local Movement = {}
 Movement.__index = Movement
 
 local Auxillary = require(game:GetService("ReplicatedStorage").Modules.Auxillary.Auxillary)
-
 local services = Auxillary.Services
-
-local Timer = require(services.rs.Modules.Auxillary.Timer)
-local VFX = require(services.rs.Modules.Auxillary.VFX)
-local Janitor = require(services.rs.Modules.Auxillary.Janitor)
 
 local Statuses = {
 	["Stun"] = { WalkSpeed = 0, JumpHeight = 0 },
@@ -20,7 +15,6 @@ local Statuses = {
 function Movement.new(user: Player, cooldownManager: {})
 	local self = setmetatable({}, Movement)
 	self.User = user
-	self.Janitor = Janitor.new()
 	self.States = {
 		["Sprinting"] = false,
 		["Stun"] = false,
@@ -29,10 +23,6 @@ function Movement.new(user: Player, cooldownManager: {})
 
 	return self
 end
-
-function Movement:Lock() end
-
-function Movement:Unlock() end
 
 function Movement:LockMovement()
 	self.A = Instance.new("NumberValue")
@@ -53,24 +43,11 @@ function Movement:UnlockMovement()
 end
 
 function Movement:UpdateCharacter(character)
-	self.Janitor:Cleanup()
-
 	local statusFolder = character:WaitForChild("StatusFolder")
-
-	--for i, v in pairs(character:GetChildren()) do
-	--	if v.Name == "StatusFolder" and v ~= statusFolder then
-	--		v:Destroy()
-	--	end
-	--end
 
 	local function updateMovement(statusFolder)
 		local walkSpeed = Auxillary.BaseProperties.Humanoid.WalkSpeed
 		local jumpHeight = Auxillary.BaseProperties.Humanoid.JumpHeight
-
-		--if not self.CooldownManager:CanAction() then
-		--	walkSpeed = 0
-		--	jumpHeight = 0
-		--end
 
 		if self.States.Sprinting and self.States.Stun == false and self.CooldownManager:CanAction() then
 			walkSpeed *= 1.5
@@ -91,11 +68,9 @@ function Movement:UpdateCharacter(character)
 	end
 
 	local con
-	con = services.RS.Heartbeat:Connect(function(dt)
+	con = services.rs.Heartbeat:Connect(function(dt)
 		updateMovement(statusFolder)
 	end)
-
-	self.Janitor:Add(con, "Disconnect")
 end
 
 function Movement:SprintBegin()
