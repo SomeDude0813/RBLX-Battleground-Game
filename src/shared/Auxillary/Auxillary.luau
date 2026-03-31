@@ -60,4 +60,14 @@ module.Cooldowns = {
 	["HeldDash"] = 5,
 }
 
+function module.CheckVariables(variables:{})
+	for _,v in variables do
+		if v == false then
+			return false
+		end
+	end
+
+	return true
+end
+
 return module

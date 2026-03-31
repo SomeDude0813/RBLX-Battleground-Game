@@ -36,6 +36,12 @@ services.p.PlayerAdded:Connect(function(player: Player)
 		a.Value = "Demo"
 		a.Parent = player
 	end
+	do
+		local a = Instance.new("NumberValue")
+		a.Name = "Combo"
+		a.Value = 0
+		a.parent = player
+	end
 
 	local Character = Instance.new("StringValue")
 	Character.Name = "Character"

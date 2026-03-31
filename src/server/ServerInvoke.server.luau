@@ -12,4 +12,20 @@ for i, v in pairs(folder:GetDescendants()) do
 	end
 end
 
-Functions.CheckCooldown.OnServerInvoke = function(player, canUse) end
+Functions.CheckCooldown.OnServerInvoke = function(user, skill)
+	--print(user, skill)
+
+	local userCooldowns = CooldownManager:GetCooldowns(user)
+	
+	if userCooldowns[skill] and userCooldowns[skill].OnCooldown == true then
+		return true
+	end
+
+	return false
+end
+
+Functions.Action.OnServerInvoke = function(user, functionName)
+	if functionName == "GetData" then
+		
+	end
+end

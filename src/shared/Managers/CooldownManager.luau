@@ -11,22 +11,57 @@ local Assets = services.rp.Assets.UI
 
 CooldownManager.Cooldowns = {}
 
+
 function CooldownManager.new(user: Player)
 	local self = setmetatable({}, CooldownManager)
 	self.User = user
 	CooldownManager.Cooldowns[user] = {}
 
-	for i, v in Inputs do
-		if v.Name == "MoveForward" or v.Name == "MoveBackward" or v.Name == "MoveLeft" or v.Name == "MoveRight" then
-			return
-		end
-
-		CooldownManager:AddSkill(user, v.Name, nil)
-	end
 	print("Cooldown Manager Initialized for " .. user.Name)
 	print(CooldownManager.Cooldowns)
 
 	return self
+end
+
+function CooldownManager:CheckVar(variables)
+	local isValid = true
+	for i,v in pairs(variables) do
+		if v == nil then
+			isValid = false
+		end
+	end
+
+	return isValid
+end
+
+function CooldownManager:GetCooldowns(user : Player)
+	local userCooldowns = self.Cooldowns[user]
+	if userCooldowns == nil then
+		print("User Cooldown Not Found : "..user.." "..self.Cooldowns)
+		return 
+	end
+
+	return userCooldowns
+end
+
+function CooldownManager:GetCooldown(user : Player, skill)
+	if CooldownManager:CheckVariables({user, skill}) == false then return end
+
+	local userCooldowns = self.Cooldowns[user]
+	if userCooldowns == nil then
+		return 
+	end
+
+	local skillCooldown = userCooldowns[skill]
+	if skillCooldown == nil then
+		return false
+	end
+
+	if skillCooldown.OnCooldown == true then
+		return true
+	end
+
+	return false
 end
 
 function CooldownManager:ClearSkillset()
