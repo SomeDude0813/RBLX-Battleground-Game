@@ -1,0 +1,3 @@
+local Skillset = {}
+
+return Skillset

@@ -1,7 +1,7 @@
 local Movement = {}
 Movement.__index = Movement
 
-local Auxillary = require(game:GetService("ReplicatedStorage").Shared.Auxillary.Auxillary)
+local Auxillary = require(game:GetService("ReplicatedStorage").Modules.Auxillary.Auxillary)
 local services = Auxillary.Services
 
 local Statuses = {
@@ -19,6 +19,7 @@ function Movement.new(user: Player, cooldownManager: {})
 		["Sprinting"] = false,
 		["Stun"] = false,
 	}
+	self.CooldownManager = cooldownManager
 
 	return self
 end
@@ -44,7 +45,7 @@ end
 function Movement:UpdateCharacter(character)
 	local statusFolder = character:WaitForChild("StatusFolder")
 
-	function updateMovement(statusFolder)
+	local function updateMovement(statusFolder)
 		local walkSpeed = Auxillary.BaseProperties.Humanoid.WalkSpeed
 		local jumpHeight = Auxillary.BaseProperties.Humanoid.JumpHeight
 
@@ -66,10 +67,10 @@ function Movement:UpdateCharacter(character)
 		character.Humanoid.JumpHeight = jumpHeight
 	end
 
-	--[[local con
+	local con
 	con = services.rs.Heartbeat:Connect(function(dt)
 		updateMovement(statusFolder)
-	end)--]]
+	end)
 end
 
 function Movement:SprintBegin()

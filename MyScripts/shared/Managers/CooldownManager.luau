@@ -1,30 +1,16 @@
 local CooldownManager = {}
 CooldownManager.__index = CooldownManager
 
-local Auxillary = require(game:GetService("ReplicatedStorage").Shared.Auxillary.Auxillary)
+local Auxillary = require(game:GetService("ReplicatedStorage").Modules.Auxillary.Auxillary)
 local services = Auxillary.Services
 
-local Inputs = Auxillary.Inputs
-local CooldownTable = Auxillary.Cooldowns
-
 local Assets = services.rp.Assets.UI
-
-CooldownManager.Cooldowns = {}
 
 function CooldownManager.new(user: Player)
 	local self = setmetatable({}, CooldownManager)
 	self.User = user
-	CooldownManager.Cooldowns[user] = {}
-
-	for i, v in Inputs do
-		if v.Name == "MoveForward" or v.Name == "MoveBackward" or v.Name == "MoveLeft" or v.Name == "MoveRight" then
-			return
-		end
-
-		CooldownManager:AddSkill(user, v.Name, nil)
-	end
-	print("Cooldown Manager Initialized for " .. user.Name)
-	print(CooldownManager.Cooldowns)
+	self.Cooldowns = {}
+	self.InAction = false
 
 	return self
 end
@@ -44,10 +30,11 @@ function CooldownManager:ClearSkillset()
 	--]]
 end
 
-function CooldownManager:AddSkill(user: Player, Skill: string, LayoutOrder: number)
-	CooldownManager.Cooldowns[user]["Skill1"] = {
+function CooldownManager:AddSkill(Skill: string, Length: number, Key: string, LayoutOrder: number)
+	self.Cooldowns[Skill] = {
 		OnCooldown = false,
-		SkillName = Skill,
+		Length = Length,
+		Key = Key,
 	}
 
 	if LayoutOrder then
@@ -63,7 +50,34 @@ function CooldownManager:AddSkill(user: Player, Skill: string, LayoutOrder: numb
 	end
 end
 
-function CooldownManager:Cooldown(Skill) end
+function CooldownManager:Cooldown(Skill)
+	local SkillCooldown = self.Cooldowns[Skill]
+	if SkillCooldown then
+		if SkillCooldown.Timer then
+			warn("There is already a cooldown running for this skill")
+			return
+		end
+		local Start = time()
+		SkillCooldown.OnCooldown = true
+
+		SkillCooldown.Timer = services.RS.RenderStepped:Connect(function(dt)
+			local TimeElapsed = math.min((time() - Start), SkillCooldown.Length)
+			if SkillCooldown.Tile then
+				SkillCooldown.Tile.CooldownColder.UIGradient.Offset =
+					Vector2.new(0, 1.5 * TimeElapsed / SkillCooldown.Length - 0.5)
+				SkillCooldown.Tile.Cooldown.Text = math.ceil((SkillCooldown.Length - TimeElapsed) * 10) / 10
+			end
+			if TimeElapsed == SkillCooldown.Length then
+				SkillCooldown.Timer:Disconnect()
+				SkillCooldown.Timer = nil
+				SkillCooldown.OnCooldown = false
+				if SkillCooldown.Tile then
+					SkillCooldown.Tile.Cooldown.Text = ""
+				end
+			end
+		end)
+	end
+end
 
 function CooldownManager:OnCooldown(Skill: string)
 	if self.Cooldowns[Skill] then
