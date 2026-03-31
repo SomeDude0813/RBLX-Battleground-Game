@@ -15,7 +15,15 @@ RemoteFolder.Action.OnServerEvent:Connect(function(user, actionName)
         local LastCombat = user.LastCombat.Value
         local Combo = user.Combo.Value
 
-        
+        if CooldownManager:GetCooldown(user, actionName) == true then return end
+        --if CooldownManager:CanAction(user) == false then return end
+        if user.InAction.Value == true then return end
 
+        user.InAction.Value = false
+        LastCombat = tick()
+        Combo = Combo + 1
+
+        CooldownManager:Cooldown(user, "M1")
+        print("cooldown start")
     end
 end)

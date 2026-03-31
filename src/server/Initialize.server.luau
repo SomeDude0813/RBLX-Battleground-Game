@@ -4,8 +4,43 @@ local services = Auxillary.Services
 local CooldownManager = require(services.rp.Shared.Managers.CooldownManager)
 local MovementManager = require(services.rp.Shared.Managers.MovementManager)
 
-services.p.PlayerAdded:Connect(function(player: Player)
-	player.CharacterAdded:Connect(function(character)
+local plrStats = {
+	["LastCombat"] = {
+		Type = "Number",
+		Value = 0,
+	},
+	["Skillset"] = {
+		Type = "String",
+		Value = "Demo"
+	},
+	["Combo"] = {
+		Type = "Number",
+		Value = 0
+	},
+	["InAction"] = {
+		Type = "Bool",
+		Value = false
+	}
+}
+
+local function SetUpStats(user)
+	for name, data in plrStats do
+		local statType = data.Type
+		local value = data.Value
+
+		local valueVar = Instance.new(statType.."Value")
+		valueVar.Name = name
+		valueVar.Value = value
+		valueVar.Parent = user
+	end
+end
+
+services.p.PlayerAdded:Connect(function(user : Player)
+	user.CharacterAdded:Connect(function(character)
+		local StatusFolder = character:FindFirstChild("StatusFolder")
+		local au = character:FindFirstChild("Aura")
+		if au or StatusFolder then return end
+		
 		services.rs.Heartbeat:Wait()
 		character.Parent = workspace.Humanoids
 
@@ -14,43 +49,26 @@ services.p.PlayerAdded:Connect(function(player: Player)
 		humanoid.BreakJointsOnDeath = false
 		humanoid.RequiresNeck = false
 
-		local StatusFolder = Instance.new("Folder")
+		StatusFolder = Instance.new("Folder")
 		StatusFolder.Name = "StatusFolder"
 		StatusFolder.Parent = character
 
-		local au = Instance.new("ObjectValue")
+		au = Instance.new("ObjectValue")
 		au.Name = "Aura"
 		au.Value = nil
 		au.Parent = character
 	end)
 
-	do
-		local a = Instance.new("NumberValue")
-		a.Name = "LastCombat"
-		a.Value = 0
-		a.Parent = player
-	end
-	do
-		local a = Instance.new("StringValue")
-		a.Name = "Skillset"
-		a.Value = "Demo"
-		a.Parent = player
-	end
-	do
-		local a = Instance.new("NumberValue")
-		a.Name = "Combo"
-		a.Value = 0
-		a.parent = player
-	end
+	SetUpStats(user)
 
 	local Character = Instance.new("StringValue")
 	Character.Name = "Character"
 	Character.Value = "Demo"
-	Character.Parent = player
+	Character.Parent = user
 
-	CooldownManager.new(player)
+	CooldownManager.new(user)
 
-	local Skillset = require(services.rp.Shared.Skillsets[player.Skillset.Value].Skillset)
-	Skillset.new(player, {})
-	MovementManager.new(player, {})
+	local Skillset = require(services.rp.Shared.Skillsets[user.Skillset.Value].Skillset)
+	Skillset.new(user, {})
+	MovementManager.new(user, {})
 end)

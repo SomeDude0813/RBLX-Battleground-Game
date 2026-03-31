@@ -8,6 +8,13 @@ local RemoteFolder = services.rp.Remotes
 local CheckCD: RemoteFunction = RemoteFolder.Functions.CheckCooldown
 local Action : RemoteEvent = RemoteFolder.Events.Action
 
+Skillset.Cooldowns = {
+	["Skill1"] = 5,
+	["Skill2"] = 3,
+	["Skill3"] = 5,
+	["Skill4"] = 2
+}
+
 function Skillset.new(user: Player, cooldownManager: {})
 	local self = setmetatable({}, Skillset)
 	self.User = user

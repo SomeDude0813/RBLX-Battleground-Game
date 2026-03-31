@@ -33,6 +33,7 @@ function Debris.Crater(origin, direction, segments, radius, height, width, xAngl
         local distance = radius * math.sin(math.rad((180 - angle)/2))
         local sideLength = 2 * (radius) * math.sin(math.rad(180/segments))
          
+        
     end
 end
 
