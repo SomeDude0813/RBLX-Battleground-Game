@@ -10,6 +10,8 @@ local CooldownTable = Auxillary.Cooldowns
 
 local Assets = services.rp.Assets.UI
 
+local CooldownList = require(services.rp.Shared.Info.Cooldowns)
+
 CooldownManager.Cooldowns = {}
 
 local DefaultCooldowns = require(services.rp.Shared.Info.CooldownManager)
@@ -46,7 +48,7 @@ function CooldownManager:GetCooldowns(user: Player)
 	return userCooldowns
 end
 
-function CooldownManager:GetCooldown(user: Player, skillName)
+function CooldownManager:OnCooldown(user: Player, skillName, duration: number?)
 	if Auxillary.CheckVariables({ user, skillName }) == false then
 		return
 	end
@@ -75,9 +77,17 @@ function CooldownManager:GetCooldown(user: Player, skillName)
 
 	local timeSince = tick() - lastUsed
 
-	local cooldown
+	local cooldown = CooldownList[skillName]
 
-	cooldown = 1
+	if duration then
+		cooldown = duration
+	end
+
+	if cooldown == nil then
+		--warn("Cooldown Not Found, Wrong Name? : " .. skillName)
+		print("Setting to default cooldown : 2.5 seconds")
+		cooldown = 2.5
+	end
 
 	if timeSince > cooldown then
 		return false -- If cooldown has passed
@@ -106,9 +116,8 @@ function CooldownManager:AddSkill(user: Player, Skill: string, LayoutOrder: numb
 		OnCooldown = false,
 		SkillName = Skill,
 	}
-
+	--[[
 	if LayoutOrder then
-		--[[
 		local Tile = Assets.SkillTile:Clone()
 		Tile.SkillName.Text = Skill
 		Tile.Key.Text = Key
@@ -116,15 +125,15 @@ function CooldownManager:AddSkill(user: Player, Skill: string, LayoutOrder: numb
 		Tile.LayoutOrder = LayoutOrder
 		Tile.Parent = self.User.PlayerGui:WaitForChild("Main").MainFrame.Loadout
 		self.Cooldowns[Skill].Tile = Tile
-		--]]
 	end
+--]]
 end
 
 function CooldownManager:Cooldown(user: Player, skillName)
 	if Auxillary.CheckVariables({ user, skillName }) == false then
 		return
 	end
-	print(user, skillName)
+	--print(user, skillName)
 	local skill = self.Cooldowns[user][skillName]
 
 	skill.LastUsed = tick()
@@ -135,14 +144,6 @@ end
 
 function CooldownManager:StartTimer(user: Player, skillName, skillType)
 	-- Types = Action or Skill (Abilities)
-end
-
-function CooldownManager:OnCooldown(user: Player, Skill: string)
-	if self.Cooldowns[user][Skill] then
-		return self.Cooldowns[Skill].OnCooldown
-	end
-	warn("Skill Not Found, Wrong Name?")
-	return nil
 end
 
 function CooldownManager:Action(user)

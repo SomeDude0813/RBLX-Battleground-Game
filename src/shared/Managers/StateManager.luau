@@ -4,6 +4,8 @@ StateManager.__index = StateManager
 local Auxillary = require(game:GetService("ReplicatedStorage").Shared.Auxillary.Auxillary)
 local services = Auxillary.Services
 
+local Statuses = require(services.rp.Shared.Info.Statuses)
+
 StateManager.PlayerStates = {}
 
 function StateManager.new(user: Player)
@@ -25,38 +27,68 @@ function StateManager.new(user: Player)
 end
 
 function StateManager:UpdateCharacter(user)
+	local Heartbeat = services.rs.Heartbeat
 	local character = user.Character or user.CharacterAdded:Wait()
 	local humanoid = character:FindFirstChild("Humanoid")
 	local statusFolder = character:WaitForChild("StatusFolder")
+	local hasStatus = false
+
 	local plrStates = self.PlayerStates[user]
 
 	local walkSpeed = Auxillary.BaseProperties.Humanoid.WalkSpeed
 	local jumpHeight = Auxillary.BaseProperties.Humanoid.JumpHeight
 
-	statusFolder.ChildAdded:Connect(function(child)
-		local statusInfo = require(services.rp.Shared.Info.Statuses)[child.Name]
-		print("Status Added : " .. child.Name)
-		if statusInfo then
-			humanoid.WalkSpeed = (walkSpeed * statusInfo.WalkSpeed)
-			humanoid.JumpHeight = (jumpHeight * statusInfo.JumpHeight)
-			print("stats changed")
-		end
-	end)
-	statusFolder.ChildRemoved:Connect(function(child)
-		local statusInfo = require(services.rp.Shared.Info.Statuses)[child.Name]
-		if statusInfo then
-			humanoid.WalkSpeed = (walkSpeed / statusInfo.WalkSpeed)
-			humanoid.JumpHeight = (jumpHeight / statusInfo.JumpHeight)
-		end
-	end)
-
-	local con = services.rs.Heartbeat:Connect(function()
-		if plrStates.Sprinting and plrStates.Stun == false then
+	local function Sprint()
+		if plrStates.Sprinting and hasStatus == false then
 			humanoid.WalkSpeed = (walkSpeed * 1.5)
-		else
+		elseif hasStatus == false then
 			humanoid.WalkSpeed = walkSpeed
 		end
+	end
+
+	local con: RBXScriptConnection = Heartbeat:Connect(Sprint)
+
+	statusFolder.ChildAdded:Connect(function(status)
+		local statusData = Statuses[status.Name]
+		if statusData then
+			print("child added: " .. status.Name)
+			hasStatus = true
+			local speed = walkSpeed * statusData.WalkSpeed
+			local jump = jumpHeight * statusData.JumpHeight
+
+			humanoid.WalkSpeed = speed
+			humanoid.JumpHeight = jump
+		end
 	end)
+	statusFolder.ChildRemoved:connect(function(status)
+		print("connect")
+		hasStatus = false
+	end)
+end
+
+function StateManager:AddStatus(user: Player, statusName: string, duration: number?)
+	if not Auxillary.CheckVariables({ user, statusName }) then
+		return
+	end
+
+	local character = user.Character
+	if character == nil then
+		print("Character Not Found : " .. user.Name)
+		return
+	end
+
+	local statusFolder = character:FindFirstChild("StatusFolder")
+	if statusFolder == nil then
+		print("Status Folder Not Found : " .. user.Name)
+		return
+	end
+
+	local status = Instance.new("IntValue")
+	status.Name = statusName
+	status.Parent = statusFolder
+	if duration then
+		services.d:AddItem(status, duration)
+	end
 end
 
 function StateManager:LockMovement(user: Player, duration: number)

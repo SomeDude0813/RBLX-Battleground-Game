@@ -1,8 +1,11 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local StateManager = require(ReplicatedStorage.Shared.Managers.StateManager)
 local Auxillary = require(game:GetService("ReplicatedStorage").Shared.Auxillary.Auxillary)
 local services = Auxillary.Services
 
 local CooldownManager = require(services.rp.Shared.Managers.CooldownManager)
 local MovementManager = require(services.rp.Shared.Managers.MovementManager)
+local CooldownList = require(services.rp.Shared.Info.Cooldowns)
 
 local Players = services.p
 
@@ -13,12 +16,20 @@ RemoteFolder.Action.OnServerEvent:Connect(function(user, actionName, data)
 		return
 	end
 
-	if CooldownManager:GetCooldown(user, actionName) == true then
+	if StateManager:CanAction(user, actionName) == false then
+		return
+	end
+
+	if CooldownManager:OnCooldown(user, actionName, CooldownList[actionName]) == true then
 		return
 	end
 
 	if actionName == "Sprint" then
 		MovementManager["Sprint" .. data.State](nil, user)
+	end
+
+	if actionName == "Dash" then
+		MovementManager:Dash(user)
 	end
 
 	if actionName == "M1" then
@@ -35,7 +46,7 @@ RemoteFolder.Action.OnServerEvent:Connect(function(user, actionName, data)
 		Combo = Combo + 1
 
 		CooldownManager:Cooldown(user, "M1")
-		MovementManager:LockMovement(user, 5)
+		StateManager:AddStatus(user, "Slow", CooldownList["M1"])
 		print("cooldown start")
 	end
 end)

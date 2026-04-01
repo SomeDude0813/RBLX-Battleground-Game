@@ -1,4 +1,5 @@
 local user = game.Players.LocalPlayer
+local char = user.Character or user.CharacterAdded:Wait()
 
 local Auxillary = require(game.ReplicatedStorage.Shared.Auxillary.Auxillary)
 local services = Auxillary.Services
@@ -8,6 +9,7 @@ local skillset = user:WaitForChild("Skillset")
 local skillsetModule
 
 local MovementManager = require(services.rp.Shared.Managers.MovementManager)
+local StateManager = require(services.rp.Shared.Managers.StateManager)
 
 local Action = services.rp.Remotes.Events.Action
 
@@ -38,15 +40,38 @@ local function onInput(actionName, inputState)
 	if actionName == "Sprint" then
 		Action:FireServer("Sprint", { State = state })
 	end
+
+	if actionName == "Dash" then
+		if state == "Begin" then
+			Action:FireServer("Dash")
+		end
+	end
+
+	if actionName == "M1" then
+		Action:FireServer("M1", { State = state })
+	end
 end
 
 --services.uis.InputBegan:Connect(handleInput)
 
 local function bindInputs()
 	CAS:BindAction("Sprint", onInput, false, inputTable["Sprint"])
+	CAS:BindAction("Dash", onInput, false, inputTable["Dash"])
+	CAS:BindAction("M1", onInput, false, inputTable["M1"])
 end
 
 bindInputs()
+
+Action.OnClientEvent:Connect(function(actionName, data)
+	if actionName == "SetSkillset" then
+		SetUpPlayer(data.Skillset)
+	end
+
+	if actionName == "Dash" then
+		local tween = data.Tween
+		print(actionName, data)
+	end
+end)
 
 --[[
 --//Camera Shaking Stuff--
