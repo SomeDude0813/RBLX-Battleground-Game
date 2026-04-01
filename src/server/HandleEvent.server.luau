@@ -33,6 +33,7 @@ RemoteFolder.Action.OnServerEvent:Connect(function(user, actionName, data)
 	end
 
 	if actionName == "M1" then
+		if data.State == "End" then return end
 		local LastCombat = user.LastCombat.Value
 		local Combo = user.Combo.Value
 

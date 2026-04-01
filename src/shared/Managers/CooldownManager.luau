@@ -1,4 +1,3 @@
-local Auxillary = require(game:GetService("ReplicatedStorage").Shared.Auxillary.Auxillary)
 local CooldownManager = {}
 CooldownManager.__index = CooldownManager
 
