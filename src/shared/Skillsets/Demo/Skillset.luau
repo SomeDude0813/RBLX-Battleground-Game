@@ -6,13 +6,13 @@ local services = Auxillary.Services
 
 local RemoteFolder = services.rp.Remotes
 local CheckCD: RemoteFunction = RemoteFolder.Functions.CheckCooldown
-local Action : RemoteEvent = RemoteFolder.Events.Action
+local Action: RemoteEvent = RemoteFolder.Events.Action
 
 Skillset.Cooldowns = {
 	["Skill1"] = 5,
 	["Skill2"] = 3,
 	["Skill3"] = 5,
-	["Skill4"] = 2
+	["Skill4"] = 2,
 }
 
 function Skillset.new(user: Player, cooldownManager: {})
@@ -30,11 +30,17 @@ function Skillset.Action(user, inputState)
 		inputState = "End"
 	end
 
-
 	if inputState == "Begin" then
 		Action:FireServer("M1")
-		
 	end
+end
+
+function Skillset.Block(user, inputState)
+	--
+end
+
+function Skillset.Dash()
+	--
 end
 
 return Skillset

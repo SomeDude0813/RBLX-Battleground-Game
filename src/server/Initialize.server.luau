@@ -3,6 +3,7 @@ local services = Auxillary.Services
 
 local CooldownManager = require(services.rp.Shared.Managers.CooldownManager)
 local MovementManager = require(services.rp.Shared.Managers.MovementManager)
+local StateManager = require(services.rp.Shared.Managers.StateManager)
 
 local plrStats = {
 	["LastCombat"] = {
@@ -11,16 +12,16 @@ local plrStats = {
 	},
 	["Skillset"] = {
 		Type = "String",
-		Value = "Demo"
+		Value = "Demo",
 	},
 	["Combo"] = {
 		Type = "Number",
-		Value = 0
+		Value = 0,
 	},
 	["InAction"] = {
 		Type = "Bool",
-		Value = false
-	}
+		Value = false,
+	},
 }
 
 local function SetUpStats(user)
@@ -28,19 +29,21 @@ local function SetUpStats(user)
 		local statType = data.Type
 		local value = data.Value
 
-		local valueVar = Instance.new(statType.."Value")
+		local valueVar = Instance.new(statType .. "Value")
 		valueVar.Name = name
 		valueVar.Value = value
 		valueVar.Parent = user
 	end
 end
 
-services.p.PlayerAdded:Connect(function(user : Player)
+services.p.PlayerAdded:Connect(function(user: Player)
 	user.CharacterAdded:Connect(function(character)
 		local StatusFolder = character:FindFirstChild("StatusFolder")
 		local au = character:FindFirstChild("Aura")
-		if au or StatusFolder then return end
-		
+		if au or StatusFolder then
+			return
+		end
+
 		services.rs.Heartbeat:Wait()
 		character.Parent = workspace.Humanoids
 
@@ -71,4 +74,5 @@ services.p.PlayerAdded:Connect(function(user : Player)
 	local Skillset = require(services.rp.Shared.Skillsets[user.Skillset.Value].Skillset)
 	Skillset.new(user, {})
 	MovementManager.new(user, {})
+	StateManager.new(user)
 end)

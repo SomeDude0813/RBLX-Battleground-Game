@@ -4,6 +4,10 @@ Movement.__index = Movement
 local Auxillary = require(game:GetService("ReplicatedStorage").Shared.Auxillary.Auxillary)
 local services = Auxillary.Services
 
+local StateManager = require(services.rp.Shared.Managers.StateManager)
+
+local Action = services.rp.Remotes.Events.Action
+
 local Statuses = {
 	["Stun"] = { WalkSpeed = 0, JumpHeight = 0 },
 	["LockWalk"] = { WalkSpeed = 0, JumpHeight = 1 },
@@ -12,24 +16,23 @@ local Statuses = {
 	["Slow"] = { WalkSpeed = 0.5, JumpHeight = 1 },
 }
 
-function Movement.new(user: Player, cooldownManager: {})
+function Movement.new(user: Player)
 	local self = setmetatable({}, Movement)
 	self.User = user
-	self.States = {
-		["Sprinting"] = false,
-		["Stun"] = false,
-	}
 
 	return self
 end
 
-function Movement:LockMovement()
+function Movement:LockMovement(user, duration)
 	self.A = Instance.new("NumberValue")
 	self.A.Name = "LockJump"
 	self.A.Parent = self.User.Character.StatusFolder
 	self.B = Instance.new("NumberValue")
 	self.B.Name = "LockWalk"
 	self.B.Parent = self.User.Character.StatusFolder
+
+	services.d:AddItem(self.A, duration)
+	services.d:AddItem(self.B, duration)
 end
 
 function Movement:UnlockMovement()
@@ -72,12 +75,26 @@ function Movement:UpdateCharacter(character)
 	end)--]]
 end
 
-function Movement:SprintBegin()
-	self.States.Sprinting = true
+function Movement:SprintBegin(user: Player)
+	print("begin")
+	--print(user)
+	if user == nil then
+		warn("User Not Found!")
+		return
+	end
+
+	if StateManager:CanAction(user, "Sprint") == false then
+		print("InAction")
+		return
+	end
+
+	StateManager:SetState(user, "Sprinting", true)
+	print("sprint")
 end
 
-function Movement:SprintEnd()
-	self.States.Sprinting = false
+function Movement:SprintEnd(user: Player)
+	print("end")
+	StateManager:SetState(user, "Sprinting", false)
 end
 
 return table.freeze(Movement)

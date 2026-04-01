@@ -2,28 +2,40 @@ local Auxillary = require(game:GetService("ReplicatedStorage").Shared.Auxillary.
 local services = Auxillary.Services
 
 local CooldownManager = require(services.rp.Shared.Managers.CooldownManager)
-
+local MovementManager = require(services.rp.Shared.Managers.MovementManager)
 
 local Players = services.p
 
 local RemoteFolder = services.rp.Remotes.Events
 
-RemoteFolder.Action.OnServerEvent:Connect(function(user, actionName)
-    if Auxillary.CheckVariables({user, actionName}) == false then return end
+RemoteFolder.Action.OnServerEvent:Connect(function(user, actionName, data)
+	if Auxillary.CheckVariables({ user, actionName }) == false then
+		return
+	end
 
-    if actionName == "M1" then
-        local LastCombat = user.LastCombat.Value
-        local Combo = user.Combo.Value
+	if CooldownManager:GetCooldown(user, actionName) == true then
+		return
+	end
 
-        if CooldownManager:GetCooldown(user, actionName) == true then return end
-        --if CooldownManager:CanAction(user) == false then return end
-        if user.InAction.Value == true then return end
+	if actionName == "Sprint" then
+		MovementManager["Sprint" .. data.State](nil, user)
+	end
 
-        user.InAction.Value = false
-        LastCombat = tick()
-        Combo = Combo + 1
+	if actionName == "M1" then
+		local LastCombat = user.LastCombat.Value
+		local Combo = user.Combo.Value
 
-        CooldownManager:Cooldown(user, "M1")
-        print("cooldown start")
-    end
+		--if CooldownManager:CanAction(user) == false then return end
+		if user.InAction.Value == true then
+			return
+		end
+
+		user.InAction.Value = false
+		LastCombat = tick()
+		Combo = Combo + 1
+
+		CooldownManager:Cooldown(user, "M1")
+		MovementManager:LockMovement(user, 5)
+		print("cooldown start")
+	end
 end)

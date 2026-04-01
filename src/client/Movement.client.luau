@@ -5,7 +5,9 @@ local services = Auxillary.Services
 local inputTable = Auxillary.Inputs
 
 local skillset = user:WaitForChild("Skillset")
-local skillsetModule;
+local skillsetModule
+
+local MovementManager = require(services.rp.Shared.Managers.MovementManager)
 
 local Action = services.rp.Remotes.Events.Action
 
@@ -24,15 +26,24 @@ end
 SetUpPlayer(skillset)
 
 local function onInput(actionName, inputState)
-	if actionName == "M1" then
-		skillsetModule.Action(user, inputState)
+	local state = "End" or "Begin"
+	do
+		if inputState == Enum.UserInputState.Begin then
+			state = "Begin"
+		else
+			state = "End"
+		end
+	end
+
+	if actionName == "Sprint" then
+		Action:FireServer("Sprint", { State = state })
 	end
 end
 
+--services.uis.InputBegan:Connect(handleInput)
+
 local function bindInputs()
-	for actionName, Key in pairs(inputTable) do
-		CAS:BindAction(actionName, onInput, false, Key)
-	end
+	CAS:BindAction("Sprint", onInput, false, inputTable["Sprint"])
 end
 
 bindInputs()

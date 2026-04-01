@@ -39,10 +39,6 @@ module.BaseProperties = {
 
 module.Inputs = {
 	["M1"] = Enum.UserInputType.MouseButton1,
-	["MoveForward"] = Enum.KeyCode.W,
-	["MoveBackward"] = Enum.KeyCode.S,
-	["MoveLeft"] = Enum.KeyCode.A,
-	["MoveRight"] = Enum.KeyCode.D,
 	["Dash"] = Enum.KeyCode.Q,
 	["Jump"] = Enum.KeyCode.Space,
 	["Sprint"] = Enum.KeyCode.LeftShift,
@@ -60,8 +56,8 @@ module.Cooldowns = {
 	["HeldDash"] = 5,
 }
 
-function module.CheckVariables(variables:{})
-	for _,v in variables do
+function module.CheckVariables(variables: {})
+	for _, v in variables do
 		if v == false then
 			return false
 		end
