@@ -46,7 +46,16 @@ function StateManager:UpdateCharacter(user)
 		end
 	end
 
-	local con: RBXScriptConnection = Heartbeat:Connect(Sprint)
+	local con: RBXScriptConnection = Heartbeat:Connect(function()
+		if user.InAction == true then
+			humanoid.WalkSpeed = 0
+		end
+		if plrStates.Sprinting and hasStatus == false then
+			humanoid.WalkSpeed = (walkSpeed * 1.5)
+		elseif hasStatus == false then
+			humanoid.WalkSpeed = walkSpeed
+		end
+	end)
 
 	statusFolder.ChildAdded:Connect(function(status)
 		local statusData = Statuses[status.Name]

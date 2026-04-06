@@ -24,8 +24,8 @@ module.BaseProperties = {
 		FieldOfView = 70,
 	},
 	["Humanoid"] = {
-		WalkSpeed = 16,
-		JumpHeight = 7.2,
+		WalkSpeed = game.StarterPlayer.CharacterWalkSpeed,
+		JumpHeight = game.StarterPlayer.CharacterJumpHeight,
 	},
 	["ColorCorrection"] = {
 		Saturation = 0.45,

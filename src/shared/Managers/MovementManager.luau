@@ -6,7 +6,7 @@ local services = Auxillary.Services
 
 local StateManager = require(services.rp.Shared.Managers.StateManager)
 
-local Action = services.rp.Remotes.Events.Action
+local Action = services.rp.Remotes.Events.CombatEvent
 
 function Movement.new(user: Player)
 	local self = setmetatable({}, Movement)
@@ -44,6 +44,9 @@ function Movement:SprintBegin(user: Player)
 		return
 	end
 
+	local char = user.Character
+	char.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Running, true)
+
 	if StateManager:CanAction(user, "Sprint") == false then
 		print("InAction")
 		return
@@ -55,6 +58,8 @@ end
 
 function Movement:SprintEnd(user: Player)
 	print("end")
+	local char = user.Character
+	char.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Running, false)
 	StateManager:SetState(user, "Sprinting", false)
 end
 

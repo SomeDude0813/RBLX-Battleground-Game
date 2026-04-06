@@ -13,12 +13,20 @@ local CooldownList = require(services.rp.Shared.Info.Cooldowns)
 
 CooldownManager.Cooldowns = {}
 
-local DefaultCooldowns = require(services.rp.Shared.Info.CooldownManager)
+local CooldownTableFormat = require(services.rp.Shared.Info.CooldownManager)
+
+local CooldownFormat = {}
+for name, data in pairs(CooldownTableFormat) do
+	CooldownFormat[name] = {
+		OnCooldown = false,
+		LastUsed = 0,
+	}
+end
 
 function CooldownManager.new(user: Player)
 	local self = setmetatable({}, CooldownManager)
 	self.User = user
-	CooldownManager.Cooldowns[user] = DefaultCooldowns
+	CooldownManager.Cooldowns[user] = CooldownFormat
 
 	print("Cooldown Manager Initialized for " .. user.Name)
 	print(CooldownManager.Cooldowns)
@@ -74,7 +82,7 @@ function CooldownManager:OnCooldown(user: Player, skillName, duration: number?)
 
 	local lastUsed = skill.LastUsed
 
-	local timeSince = tick() - lastUsed
+	local timeSince = os.clock() - lastUsed
 
 	local cooldown = CooldownList[skillName]
 
@@ -135,7 +143,7 @@ function CooldownManager:Cooldown(user: Player, skillName)
 	--print(user, skillName)
 	local skill = self.Cooldowns[user][skillName]
 
-	skill.LastUsed = tick()
+	skill.LastUsed = os.clock()
 
 	--user.InAction = true
 	--task.wait()
