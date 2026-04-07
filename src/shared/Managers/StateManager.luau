@@ -12,15 +12,12 @@ function StateManager.new(user: Player)
 	local self = setmetatable({}, StateManager)
 	self.User = user
 	self.States = {
-		["Sprinting"] = false,
-		["Stun"] = false,
+		["Sprint"] = false,
 	}
 
 	StateManager.PlayerStates[user] = self.States
 
-	print("statemanager initialized")
-	print(StateManager.PlayerStates)
-
+	print("Statemanager initialized")
 	StateManager:UpdateCharacter(user)
 
 	return self
@@ -31,6 +28,7 @@ function StateManager:UpdateCharacter(user)
 	local character = user.Character or user.CharacterAdded:Wait()
 	local humanoid = character:FindFirstChild("Humanoid")
 	local statusFolder = character:WaitForChild("StatusFolder")
+	local Variables = user:FindFirstChild("Variables")
 	local hasStatus = false
 
 	local plrStates = self.PlayerStates[user]
@@ -47,7 +45,7 @@ function StateManager:UpdateCharacter(user)
 	end
 
 	local con: RBXScriptConnection = Heartbeat:Connect(function()
-		if user.InAction == true then
+		if Variables.InAction == true then
 			humanoid.WalkSpeed = 0
 		end
 		if plrStates.Sprinting and hasStatus == false then

@@ -8,36 +8,42 @@ local inputTable = Auxillary.Inputs
 local MovementManager = require(services.rp.Shared.Managers.MovementManager)
 local StateManager = require(services.rp.Shared.Managers.StateManager)
 
-local Action = services.rp.Remotes.Events.CombatEvent
+local CombatEvent = services.rp.Remotes.Events.CombatEvent
+local MovementEvent = services.rp.Remotes.Events.MovementEvent
 
 local CAS = services.cas
 
+local skillset = user:WaitForChild("Variables"):WaitForChild("Skillset")
+
 local function onInput(actionName, inputState)
-	local state = "End" or "Begin"
+	if skillset.Value == "None" then
+		print("no skillset")
+		return
+	end
+
+	local state
 	do
 		if inputState == Enum.UserInputState.Begin then
 			state = "Begin"
-		else
+		elseif inputState == Enum.UserInputState.End then
 			state = "End"
 		end
 	end
 
 	if actionName == "Sprint" then
-		Action:FireServer("Sprint", { State = state })
+		MovementManager["Sprint" .. state](nil, user)
 	end
 
 	if actionName == "Dash" then
-		if state == "Begin" then
-			Action:FireServer("Dash")
-		end
+		MovementEvent:FireServer("Dash", { State = state })
 	end
 
 	if actionName == "M1" then
-		Action:FireServer("M1", { State = state })
+		CombatEvent:FireServer("M1", { State = state })
 	end
-	if actionName == "Yes" then
+	if actionName == "SpawnCharacter" then
 		if state == "Begin" then
-			services.rp.Remotes.Events.SpawnEvent:FireServer()
+			services.rp.Remotes.Events.SpawnEvent:FireServer("Fire")
 		end
 	end
 end
@@ -48,21 +54,10 @@ local function bindInputs()
 	CAS:BindAction("Sprint", onInput, false, inputTable["Sprint"])
 	CAS:BindAction("Dash", onInput, false, inputTable["Dash"])
 	CAS:BindAction("M1", onInput, false, inputTable["M1"])
-	CAS:BindAction("Yes", onInput, false, Enum.KeyCode.F)
+	CAS:BindAction("SpawnCharacter", onInput, false, Enum.KeyCode.F)
 end
 
 bindInputs()
-
-Action.OnClientEvent:Connect(function(actionName, data)
-	if actionName == "SetSkillset" then
-		SetUpPlayer(data.Skillset)
-	end
-
-	if actionName == "Dash" then
-		local tween = data.Tween
-		print(actionName, data)
-	end
-end)
 
 --[[
 --//Camera Shaking Stuff--

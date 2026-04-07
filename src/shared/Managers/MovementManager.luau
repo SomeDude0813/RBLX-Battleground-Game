@@ -6,7 +6,7 @@ local services = Auxillary.Services
 
 local StateManager = require(services.rp.Shared.Managers.StateManager)
 
-local Action = services.rp.Remotes.Events.CombatEvent
+local MovementEvent = services.rp.Remotes.Events.MovementEvent
 
 function Movement.new(user: Player)
 	local self = setmetatable({}, Movement)
@@ -40,6 +40,7 @@ function Movement:SprintBegin(user: Player)
 	print("begin")
 	--print(user)
 	if user == nil then
+		print(user)
 		warn("User Not Found!")
 		return
 	end
@@ -47,12 +48,8 @@ function Movement:SprintBegin(user: Player)
 	local char = user.Character
 	char.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Running, true)
 
-	if StateManager:CanAction(user, "Sprint") == false then
-		print("InAction")
-		return
-	end
+	MovementEvent:FireServer("Sprint", { State = true })
 
-	StateManager:SetState(user, "Sprinting", true)
 	print("sprint")
 end
 
@@ -60,7 +57,8 @@ function Movement:SprintEnd(user: Player)
 	print("end")
 	local char = user.Character
 	char.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Running, false)
-	StateManager:SetState(user, "Sprinting", false)
+	--StateManager:SetState(user, "Sprinting", false)
+	MovementEvent:FireServer("Sprint", { State = false })
 end
 
 return table.freeze(Movement)

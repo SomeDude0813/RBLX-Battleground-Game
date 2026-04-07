@@ -9,16 +9,22 @@ Players.PlayerAdded:Connect(function(user: Player)
 	user.CharacterAdded:Connect(function(character)
 		services.rs.Heartbeat:Wait()
 		character.Parent = workspace.Characters
+		local statusFolder = Instance.new("Folder")
+		statusFolder.Name = "StatusFolder"
+		statusFolder.Parent = character
 	end)
-	local Character = Instance.new("StringValue")
-	Character.Name = "Character"
-	Character.Value = "None"
-	Character.Parent = user
+
+	local varFolder = Instance.new("Folder")
+	varFolder.Name = "Variables"
+	varFolder.Parent = user
+
+	local Skillset = Instance.new("StringValue")
+	Skillset.Name = "Skillset"
+	Skillset.Value = "None"
+	Skillset.Parent = varFolder
 
 	local InAction = Instance.new("BoolValue")
 	InAction.Name = "InAction"
 	InAction.Value = false
-	InAction.Parent = user
-
-	StateManager.new(user)
+	InAction.Parent = varFolder
 end)
