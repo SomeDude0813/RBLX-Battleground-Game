@@ -1,17 +1,17 @@
 local animations = {}
 
+local Auxillary = require(game:GetService("ReplicatedStorage").Shared.Auxillary.Auxillary)
+local services = Auxillary.Services
+
+local AnimationManager = require(services.rp.Shared.Managers.AnimationManager)
+
 local user = game.Players.LocalPlayer
 local char = user.Character or user.CharacterAdded:Wait()
 local humanoid = char:WaitForChild("Humanoid")
 
 local animator: Animator = humanoid:WaitForChild("Animator")
 
-for _, anim in pairs(char.Animate:GetDescendants()) do
-	if anim:IsA("Animation") then
-		local animTrack = animator:LoadAnimation(anim)
-		animations[anim.Name] = animTrack
-	end
-end
+AnimationManager.Init()
 
 local footstepVFX = char:WaitForChild("FootstepVFX")
 

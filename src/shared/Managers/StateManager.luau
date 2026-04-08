@@ -36,15 +36,18 @@ function StateManager:UpdateCharacter(user)
 	local walkSpeed = Auxillary.BaseProperties.Humanoid.WalkSpeed
 	local jumpHeight = Auxillary.BaseProperties.Humanoid.JumpHeight
 
+	local SprintMultiplier = Auxillary.GameVariables.SprintMultiplier
+
 	local function Sprint()
 		if plrStates.Sprinting and hasStatus == false then
-			humanoid.WalkSpeed = (walkSpeed * 1.5)
+			humanoid.WalkSpeed = (walkSpeed * SprintMultiplier)
 		elseif hasStatus == false then
 			humanoid.WalkSpeed = walkSpeed
 		end
 	end
 
 	local con: RBXScriptConnection = Heartbeat:Connect(function()
+		Sprint()
 		if Variables.InAction == true then
 			humanoid.WalkSpeed = 0
 		end
@@ -60,7 +63,7 @@ function StateManager:UpdateCharacter(user)
 		if statusData then
 			print("child added: " .. status.Name)
 			hasStatus = true
-			local speed = walkSpeed * statusData.WalkSpeed
+			local speed = humanoid.WalkSpeed * statusData.WalkSpeed
 			local jump = jumpHeight * statusData.JumpHeight
 
 			humanoid.WalkSpeed = speed
@@ -162,6 +165,10 @@ function StateManager:SetState(user: Player, state: string, value: boolean, dura
 			plrStates[state] = not value
 		end)
 	end
+end
+
+function StateManager:GetState(user: Player, state: string)
+	return self.PlayerStates[user][state]
 end
 
 return StateManager

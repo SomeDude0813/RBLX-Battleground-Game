@@ -56,6 +56,10 @@ module.Cooldowns = {
 	["HeldDash"] = 5,
 }
 
+module.GameVariables = {
+	["SprintMultiplier"] = 3,
+}
+
 function module.CheckVariables(variables: {})
 	for _, v in variables do
 		if v == false then

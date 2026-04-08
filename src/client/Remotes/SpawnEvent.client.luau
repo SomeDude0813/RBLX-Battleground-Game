@@ -5,8 +5,22 @@ local user = services.p.LocalPlayer
 
 local SpawnEvent = services.rp.Remotes.Events.SpawnEvent
 
+local AnimationManager = require(services.rp.Shared.Managers.AnimationManager)
+
 SpawnEvent.OnClientEvent:Connect(function(data)
 	print("fired")
+	local func
+	if data.Function then
+		func = data.Function
+		if func == "DisableGui" then -- Disables other gui's for chatgui
+			for _, gui in user.PlayerGui:GetChildren() do
+				if gui.Name == "CombatGui" then
+					gui.Enabled = false
+				end
+			end
+		end
+		return
+	end
 	local Skillset = data.Skillset
 	print(Skillset)
 
@@ -23,4 +37,6 @@ SpawnEvent.OnClientEvent:Connect(function(data)
 	for i, skillName in pairs(skillNames) do
 		CombatGui.Loadout["Skill" .. i].Text = skillName
 	end
+
+	--AnimationManager.Init()
 end)

@@ -1,16 +1,16 @@
 local Skillset = {}
 Skillset.__index = Skillset
 
-Skillset.Name = "Demo"
+Skillset.Name = "Ice"
 
 local Auxillary = require(game:GetService("ReplicatedStorage").Shared.Auxillary.Auxillary)
 local services = Auxillary.Services
 
 Skillset.Skills = {
-	[1] = "Fire 1",
-	[2] = "Fire 2",
-	[3] = "Fire 3",
-	[4] = "Fire 4",
+	[1] = "Ice 1",
+	[2] = "Ice 2",
+	[3] = "Ice 3",
+	[4] = "Ice 4",
 }
 
 function Skillset.init(user: Player)

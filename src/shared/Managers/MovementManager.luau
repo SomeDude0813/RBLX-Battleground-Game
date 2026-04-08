@@ -5,6 +5,7 @@ local Auxillary = require(game:GetService("ReplicatedStorage").Shared.Auxillary.
 local services = Auxillary.Services
 
 local StateManager = require(services.rp.Shared.Managers.StateManager)
+local AnimationManager = require(services.rp.Shared.Managers.AnimationManager)
 
 local MovementEvent = services.rp.Remotes.Events.MovementEvent
 
@@ -44,6 +45,11 @@ function Movement:SprintBegin(user: Player)
 		warn("User Not Found!")
 		return
 	end
+	AnimationManager:Play("Sprint", {
+		FadeTime = 0.35,
+		Weight = 2.2,
+		Speed = 0.8,
+	})
 
 	local char = user.Character
 	char.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Running, true)
@@ -58,6 +64,9 @@ function Movement:SprintEnd(user: Player)
 	local char = user.Character
 	char.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Running, false)
 	--StateManager:SetState(user, "Sprinting", false)
+
+	AnimationManager:Stop("Sprint", 0.35)
+
 	MovementEvent:FireServer("Sprint", { State = false })
 end
 

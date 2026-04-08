@@ -1,3 +1,0 @@
-local AnimationManager = {}
-
-return AnimationManager

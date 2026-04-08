@@ -10,8 +10,9 @@ local MovementManager = require(services.rp.Shared.Managers.MovementManager)
 local StateManager = require(services.rp.Shared.Managers.StateManager)
 
 SpawnEvent.OnServerEvent:Connect(function(user: Player, skillsetName: string)
+	print("Spawn Fired")
 	-- Character spawning
-	local newChar = workspace.Dummys.Fire:Clone()
+	local newChar = workspace.Dummys.Elemental[skillsetName]:Clone()
 	newChar.HumanoidRootPart.Position = user.Character.HumanoidRootPart.Position
 	newChar.Humanoid:Destroy()
 	newChar.Name = user.Name
@@ -27,6 +28,7 @@ SpawnEvent.OnServerEvent:Connect(function(user: Player, skillsetName: string)
 
 	newHum.Parent = newChar
 	newAnimate.Parent = newChar
+	warn("Character Sp0awned")
 
 	local skillset = user.Variables.Skillset
 	skillset.Value = skillsetName
