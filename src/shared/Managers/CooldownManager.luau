@@ -13,7 +13,7 @@ local CooldownList = require(services.rp.Shared.Info.Cooldowns)
 
 CooldownManager.Cooldowns = {}
 
-local CooldownTableFormat = require(services.rp.Shared.Info.CooldownManager)
+local CooldownTableFormat = require(services.rp.Shared.Info.CooldownFormat)
 
 local CooldownFormat = {}
 for name, data in pairs(CooldownTableFormat) do
@@ -60,20 +60,6 @@ function CooldownManager:OnCooldown(user: Player, skillName, duration: number?)
 		return
 	end
 
-	--[[local userCooldowns = self.Cooldowns[user]
-	if userCooldowns == nil then
-		return 
-	end
-
-	local skillCooldown = userCooldowns[skill]
-	if skillCooldown == nil then
-		return false
-	end
-
-	if skillCooldown.OnCooldown == true then
-		return true
-	end--]]
-
 	local skill = self.Cooldowns[user][skillName]
 	if skill == nil then
 		warn("Skill Not Found, Wrong Name? : " .. skillName)
@@ -101,52 +87,6 @@ function CooldownManager:OnCooldown(user: Player, skillName, duration: number?)
 	else
 		return true -- If cooldown is active
 	end
-end
-
-function CooldownManager:ClearSkillset()
-	--[[
-	for i, Skill in pairs(self.Cooldowns) do
-		if Skill.Timer then
-			Skill.Timer:Disconnect()
-		end
-		if Skill.Tile then
-			Skill.Tile:Destroy()
-		end
-		self.Cooldowns[i] = nil
-	end
-	self.Cooldowns = {}
-	--]]
-end
-
-function CooldownManager:AddSkill(user: Player, Skill: string, LayoutOrder: number)
-	CooldownManager.Cooldowns[user]["Skill1"] = {
-		OnCooldown = false,
-		SkillName = Skill,
-	}
-	--[[
-	if LayoutOrder then
-		local Tile = Assets.SkillTile:Clone()
-		Tile.SkillName.Text = Skill
-		Tile.Key.Text = Key
-		Tile.Cooldown.Text = ""
-		Tile.LayoutOrder = LayoutOrder
-		Tile.Parent = self.User.PlayerGui:WaitForChild("Main").MainFrame.Loadout
-		self.Cooldowns[Skill].Tile = Tile
-	end
---]]
-end
-
-function CooldownManager:Cooldown(user: Player, skillName)
-	if Auxillary.CheckVariables({ user, skillName }) == false then
-		return
-	end
-	--print(user, skillName)
-	local skill = self.Cooldowns[user][skillName]
-
-	skill.LastUsed = os.clock()
-
-	--user.InAction = true
-	--task.wait()
 end
 
 function CooldownManager:StartTimer(user: Player, skillName, skillType)

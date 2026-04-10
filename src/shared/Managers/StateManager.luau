@@ -2,6 +2,7 @@ local StateManager = {}
 StateManager.__index = StateManager
 
 local Auxillary = require(game:GetService("ReplicatedStorage").Shared.Auxillary.Auxillary)
+local RunService = game:GetService("RunService")
 local services = Auxillary.Services
 
 local Statuses = require(services.rp.Shared.Info.Statuses)
@@ -12,7 +13,8 @@ function StateManager.new(user: Player)
 	local self = setmetatable({}, StateManager)
 	self.User = user
 	self.States = {
-		["Sprint"] = false,
+		["Ragdolled"] = false,
+		["Stunned"] = false,
 	}
 
 	StateManager.PlayerStates[user] = self.States
@@ -31,32 +33,21 @@ function StateManager:UpdateCharacter(user)
 	local Variables = user:FindFirstChild("Variables")
 	local hasStatus = false
 
-	local plrStates = self.PlayerStates[user]
+	local plrStates = StateManager.PlayerStates[user]
 
 	local walkSpeed = Auxillary.BaseProperties.Humanoid.WalkSpeed
 	local jumpHeight = Auxillary.BaseProperties.Humanoid.JumpHeight
 
 	local SprintMultiplier = Auxillary.GameVariables.SprintMultiplier
 
-	local function Sprint()
-		if plrStates.Sprinting and hasStatus == false then
-			humanoid.WalkSpeed = (walkSpeed * SprintMultiplier)
-		elseif hasStatus == false then
-			humanoid.WalkSpeed = walkSpeed
-		end
-	end
-
-	local con: RBXScriptConnection = Heartbeat:Connect(function()
-		Sprint()
-		if Variables.InAction == true then
-			humanoid.WalkSpeed = 0
-		end
+	--[[local con: RBXScriptConnection = RunService.Heartbeat:Connect(function()
+		print("con")
 		if plrStates.Sprinting and hasStatus == false then
 			humanoid.WalkSpeed = (walkSpeed * 1.5)
 		elseif hasStatus == false then
 			humanoid.WalkSpeed = walkSpeed
 		end
-	end)
+	end)--]]
 
 	statusFolder.ChildAdded:Connect(function(status)
 		local statusData = Statuses[status.Name]
@@ -125,7 +116,7 @@ function StateManager:LockMovement(user: Player, duration: number)
 	services.d:AddItem(b, duration)
 end
 
-function StateManager:CanAction(user: Player, action)
+function StateManager:CanAction(user: Player)
 	local plrStates = self.PlayerStates[user]
 	if plrStates == nil then
 		print("Player States Not Found : " .. user.Name)
@@ -154,12 +145,12 @@ end
 function StateManager:SetState(user: Player, state: string, value: boolean, duration: number?)
 	local plrStates = self.PlayerStates[user]
 	if plrStates == nil then
-		print("Player States Not Found : " .. user.Name)
+		warn("Player States Not Found : " .. user.Name)
 		return
 	end
 
 	plrStates[state] = value
-	print(state .. " set to " .. tostring(value))
+	warn(state .. " set to " .. tostring(value))
 	if duration then
 		task.delay(duration, function()
 			plrStates[state] = not value

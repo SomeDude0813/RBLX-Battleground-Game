@@ -1,0 +1,3 @@
+local Attack = {}
+
+return Attack

@@ -6,7 +6,6 @@ local SpawnEvent = services.rp.Remotes.Events.SpawnEvent
 local SkillsetFolder = services.rp.Shared.Skillsets
 
 local CooldownManager = require(services.rp.Shared.Managers.CooldownManager)
-local MovementManager = require(services.rp.Shared.Managers.MovementManager)
 local StateManager = require(services.rp.Shared.Managers.StateManager)
 
 SpawnEvent.OnServerEvent:Connect(function(user: Player, skillsetName: string)
@@ -35,7 +34,7 @@ SpawnEvent.OnServerEvent:Connect(function(user: Player, skillsetName: string)
 
 	-- Initialize skillset
 	CooldownManager.new(user)
-	MovementManager.new(user)
+	--MovementManager.new(user)
 	StateManager.new(user)
 
 	--Activate Combat UI

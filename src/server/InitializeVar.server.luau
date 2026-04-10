@@ -27,4 +27,6 @@ Players.PlayerAdded:Connect(function(user: Player)
 	InAction.Name = "InAction"
 	InAction.Value = false
 	InAction.Parent = varFolder
+
+	StateManager.new(user)
 end)
