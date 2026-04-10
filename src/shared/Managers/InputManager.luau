@@ -5,6 +5,7 @@ local Auxillary = require(game:GetService("ReplicatedStorage").Shared.Auxillary.
 local services = Auxillary.Services
 
 local CAS = services.cas
+local Action: RemoteEvent = services.rp.Remotes.Events.Action
 
 local ActionModules = {}
 
@@ -53,14 +54,31 @@ function InputManager:BindInputs()
 			end
 		end
 
-		ActionModules[actionName]:Fire(state)
+		if state == true then
+			--Fire server
+			Action:FireServer({ Action = actionName, State = state })
+		end
+	end
+
+	local function onActionToggle(actionName, inputState)
+		local state
+		do
+			if inputState == Enum.UserInputState.Begin then
+				state = true
+			else
+				state = false
+			end
+		end
+
+		--Fire server
+		Action:FireServer({ Action = actionName, State = state })
 	end
 
 	CAS:BindActionAtPriority("W", onInput, false, 1, Enum.KeyCode.W)
 	CAS:BindActionAtPriority("A", onInput, false, 1, Enum.KeyCode.A)
 	CAS:BindActionAtPriority("S", onInput, false, 1, Enum.KeyCode.S)
 	CAS:BindActionAtPriority("D", onInput, false, 1, Enum.KeyCode.D)
-	CAS:BindAction("Sprint", onAction, false, Enum.KeyCode.LeftShift)
+	CAS:BindAction("Sprint", onActionToggle, false, Enum.KeyCode.LeftShift)
 	CAS:BindAction("Dash", onAction, false, Enum.KeyCode.Q)
 end
 
