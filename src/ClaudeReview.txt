@@ -1,0 +1,256 @@
+Now I have a complete picture of the codebase. Here's my full review:
+
+---
+
+# Code Review: RBLX Battleground Game
+
+## Rating: 4/10
+
+The framework shows good architectural thinking (client/server split, manager pattern, shared modules), but has significant bugs, security vulnerabilities, and code quality issues that would cause real problems in production.
+
+---
+
+## CRITICAL BUGS
+
+### 1. Shared CooldownFormat reference — all players share the same cooldown table
+**File:** `src/shared/Managers/CooldownManager.luau:29`
+```lua
+CooldownManager.Cooldowns[user] = CooldownFormat  -- BUG: shared reference!
+```
+Every player gets assigned the **same table object**. When player A's cooldown updates, it changes for player B too.
+
+**Fix:**
+```lua
+function CooldownManager.new(user: Player)
+    local self = setmetatable({}, CooldownManager)
+    self.User = user
+
+    -- Deep copy so each player gets their own cooldown state
+    local playerCooldowns = {}
+    for name, _ in pairs(CooldownTableFormat) do
+        playerCooldowns[name] = {
+            OnCooldown = false,
+            LastUsed = 0,
+        }
+    end
+    CooldownManager.Cooldowns[user] = playerCooldowns
+
+    return self
+end
+```
+
+### 2. Status system breaks with multiple simultaneous statuses
+**File:** `src/shared/Managers/StateManager.luau:52-67`
+```lua
+statusFolder.ChildAdded:Connect(function(status)
+    -- Overwrites walkspeed every time, compounding multipliers
+    local speed = humanoid.WalkSpeed * statusData.WalkSpeed  -- BUG
+    humanoid.WalkSpeed = speed
+end)
+statusFolder.ChildRemoved:connect(function(status)
+    hasStatus = false  -- BUG: ignores remaining statuses
+end)
+```
+If a player has Stun (0x) and Slow (0.5x), removing Stun sets `hasStatus = false` even though Slow is still active. Also, applying Slow after Stun does `0 * 0.5 = 0`, which is correct by accident, but applying Speed then Slow does `walkSpeed * 1.2 * 0.5 = 0.6x` — the multipliers compound incorrectly.
+
+**Fix:**
+```lua
+local function recalculateMovement()
+    local walkMult = 1
+    local jumpMult = 1
+    for _, status in statusFolder:GetChildren() do
+        local statusData = Statuses[status.Name]
+        if statusData then
+            walkMult = math.min(walkMult, statusData.WalkSpeed)
+            jumpMult = math.min(jumpMult, statusData.JumpHeight)
+        end
+    end
+    humanoid.WalkSpeed = walkSpeed * walkMult
+    humanoid.JumpHeight = jumpHeight * jumpMult
+end
+
+statusFolder.ChildAdded:Connect(recalculateMovement)
+statusFolder.ChildRemoved:Connect(recalculateMovement)
+```
+
+### 3. No input validation on server action handler — remote exploit
+**File:** `src/server/Action.server.luau:15-25`
+```lua
+Action.OnServerEvent:Connect(function(user: Player, data: {})
+    local actionName = data.Action  -- Client controls this string!
+    ActionModules[actionName]:Fire()  -- Can index ANY module or crash the server
+end)
+```
+A malicious client can send any string as `actionName`, causing an error (crash the handler) or potentially calling unintended modules.
+
+**Fix:**
+```lua
+Action.OnServerEvent:Connect(function(user: Player, data)
+    if typeof(data) ~= "table" then return end
+
+    local actionName = data.Action
+    if typeof(actionName) ~= "string" then return end
+
+    local module = ActionModules[actionName]
+    if module == nil then return end
+
+    if StateManager:CanAction(user) then
+        module:Fire(user, data.State)  -- Pass user so server knows WHO acted
+    end
+end)
+```
+
+### 4. SpawnEvent has no validation — client can spawn as any skillset
+**File:** `src/server/SpawnEvent.server.luau:11-14`
+```lua
+SpawnEvent.OnServerEvent:Connect(function(user: Player, skillsetName: string)
+    local newChar = workspace.Dummys.Elemental[skillsetName]:Clone()  -- No validation!
+```
+Client can send any string, potentially indexing non-existent children (crash) or spawning unintended models.
+
+**Fix:**
+```lua
+local VALID_SKILLSETS = { Fire = true, Ice = true, Earth = true, Lightning = true }
+
+SpawnEvent.OnServerEvent:Connect(function(user: Player, skillsetName: string)
+    if typeof(skillsetName) ~= "string" then return end
+    if not VALID_SKILLSETS[skillsetName] then return end
+
+    local dummyFolder = workspace.Dummys.Elemental:FindFirstChild(skillsetName)
+    if not dummyFolder then return end
+    -- ...
+end)
+```
+
+### 5. SpawnEvent overwrites CFrame immediately after setting position
+**File:** `src/server/SpawnEvent.server.luau:15-18`
+```lua
+newChar.HumanoidRootPart.Position = user.Character.HumanoidRootPart.Position  -- Set position
+newChar.Humanoid:Destroy()
+newChar.Name = user.Name
+newChar.HumanoidRootPart.CFrame = CFrame.new(0, 0, 0)  -- Overwritten to origin!
+```
+Line 15 saves the player's position, but line 18 teleports them to world origin `(0,0,0)`.
+
+**Fix:** Remove line 18 or use the saved position:
+```lua
+local spawnCFrame = user.Character.HumanoidRootPart.CFrame
+-- ... setup ...
+newChar.HumanoidRootPart.CFrame = spawnCFrame
+```
+
+---
+
+## SECURITY ISSUES
+
+### 6. No rate limiting on RemoteEvents
+Both `Action` and `SpawnEvent` have zero throttling. A client can fire thousands of events per second to overload the server.
+
+**Recommendation:** Add per-player cooldowns:
+```lua
+local lastFire = {}
+Action.OnServerEvent:Connect(function(user, data)
+    local now = os.clock()
+    if lastFire[user] and now - lastFire[user] < 0.05 then return end
+    lastFire[user] = now
+    -- ... handle action
+end)
+```
+
+### 7. Client can spam spawn to duplicate managers
+Every `SpawnEvent` call creates a **new** `CooldownManager` and `StateManager` without cleaning up the old one, leaking memory.
+
+---
+
+## CODE QUALITY ISSUES
+
+### 8. Inconsistent module path references
+```lua
+-- CommonMethods.luau uses:
+require(game.ReplicatedStorage.Modules.Auxillary.Auxillary)  -- WRONG path
+
+-- Everything else uses:
+require(game:GetService("ReplicatedStorage").Shared.Auxillary.Auxillary)
+```
+`CommonMethods.luau` references `Modules.Auxillary` which doesn't match the project structure (`Shared.Auxillary`). This would error at runtime.
+
+### 9. String concatenation with non-string types
+**File:** `CooldownManager.luau:51`
+```lua
+print("User Cooldown Not Found : " .. user .. " " .. self.Cooldowns)
+```
+`user` is a Player object and `self.Cooldowns` is a table — concatenating them will error. Use `tostring()`.
+
+### 10. Deprecated API usage
+**File:** `StateManager.luau:64`
+```lua
+statusFolder.ChildRemoved:connect(function(status)  -- lowercase 'c'
+```
+`:connect()` is deprecated. Use `:Connect()`.
+
+### 11. No memory cleanup on player leave
+No `PlayerRemoving` handler exists. `CooldownManager.Cooldowns[user]`, `StateManager.PlayerStates[user]`, and all event connections leak forever.
+
+**Fix:** Add to `InitializeVar.server.luau`:
+```lua
+Players.PlayerRemoving:Connect(function(user)
+    CooldownManager.Cooldowns[user] = nil
+    StateManager.PlayerStates[user] = nil
+end)
+```
+
+### 12. AnimationManager loads every animation twice
+```lua
+-- Module scope (line 14): loads all animations into table
+for _, animation in pairs(AnimationFolder:GetDescendants()) do
+
+-- Init() (line 35): loads them again on the Animator
+for _, animation in Animations do
+    Animator:LoadAnimation(animation)
+end
+
+-- Play() (line 71): loads AGAIN every time Play() is called!
+local animTrack = Animator:LoadAnimation(animation)
+```
+`LoadAnimation` should be called once and the track cached. Loading per-play wastes memory and creates duplicate tracks.
+
+### 13. Excessive debug prints/warns in production code
+Almost every function has `print()` or `warn()` calls that will spam the output console. These should be removed or gated behind a debug flag.
+
+### 14. `CheckVariables` treats `false` and `nil` differently
+```lua
+function module.CheckVariables(variables: {})
+    for _, v in variables do
+        if v == false then return false end  -- Catches false but NOT nil
+    end
+    return true
+end
+```
+Meanwhile `CooldownManager:CheckVar` checks for `nil` but not `false`. Pick one consistent approach.
+
+---
+
+## STRUCTURAL IMPROVEMENTS
+
+1. **Use a proper OOP pattern consistently** — `InputManager.new()` doesn't return `self` or use `setmetatable`. It's called as a constructor but acts as a plain function.
+
+2. **Separate server-only from shared modules** — `CooldownManager` and `StateManager` use static tables (`Cooldowns`, `PlayerStates`) that only make sense on the server, but they live in `Shared/`. If a client requires them, it gets empty tables that serve no purpose. Move server-only managers to `src/server/Modules/`.
+
+3. **Service abbreviations are unreadable** — `services.d`, `services.ss`, `services.SS` (SoundService vs ServerStorage differ by case). Use full names or at least readable abbreviations.
+
+4. **Standardize status application** — `CommonMethods.ApplyStatus()`, `CommonMethods.ApplyStun()`, `CommonMethods.ApplyIFrame()`, and `StateManager:AddStatus()` all do the same thing with slight variations. Consolidate into one function.
+
+5. **The `task.wait(1)` in SpawnEvent is a code smell** — This arbitrary delay before parenting the humanoid suggests a race condition being papered over. Use proper event-driven waiting instead.
+
+---
+
+## Summary
+
+| Category | Issues Found |
+|----------|-------------|
+| Critical Bugs | 5 (shared references, status stacking, CFrame overwrite, missing validation) |
+| Security | 3 (no input validation, no rate limiting, spawn spam) |
+| Code Quality | 7 (wrong paths, deprecated APIs, memory leaks, debug spam) |
+| Architecture | 5 (inconsistent patterns, misplaced modules, duplication) |
+
+The bones are there — the manager pattern, client/server split, and status effect system are good architectural decisions. But the implementation needs hardening before it's playable: validate all client input, fix the shared-reference bug in CooldownManager, rework the status system to handle multiple concurrent statuses, and add player cleanup on disconnect.
